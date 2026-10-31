@@ -1,255 +1,267 @@
 # 🏥 Mission Hospital Package Pricing Analysis Using R
 
-This project analyzes hospital costs and explores the factors influencing total hospital expenditure using **R and RStudio**.
+## 1. Project Overview
 
-### Key Features
+This project analyzes hospital expenditure using **R and RStudio**. It explores the relationship between total hospital costs and factors such as length of hospital stay, intensive care unit (ICU) stay, implant costs, patient characteristics, and medical history.
 
-* Data cleaning and missing-value treatment
-* Categorical variable encoding and dummy-variable creation
-* Correlation analysis and exploratory data analysis
-* Multiple linear regression modeling
-* Multicollinearity analysis using VIF
-* Hospital cost prediction and visualization
+The analysis applies data preprocessing, exploratory data analysis, correlation analysis, multiple linear regression, multicollinearity assessment, and cost prediction.
 
-### Tools & Technologies
+The primary objective is to understand the factors associated with hospital costs and develop a regression model to predict total hospital expenditure.
 
-**R | RStudio | Tidyverse | Multiple Linear Regression | Statistical Analysis**
+## 2. Project Objectives
 
-**Objective:** To explore relationships between patient characteristics, hospital stay, implant costs, and total hospital costs using statistical modeling.
-## Code 
-missionML <- read.csv("C:/Users/imrah/Downloads/missionML.csv", stringsAsFactors=TRUE)
-summary(missionML)
+* Clean and preprocess hospital data.
+* Handle missing values in numeric variables.
+* Encode categorical variables and create dummy variables.
+* Explore relationships between numeric variables.
+* Divide the dataset into training and testing subsets.
+* Develop and compare multiple linear regression models.
+* Assess multicollinearity using Variance Inflation Factor (VIF).
+* Apply a logarithmic transformation to hospital costs.
+* Generate predictions using the selected regression model.
+* Compare predicted and observed costs visually.
 
-#Missing Values 
-library(tidyverse)
-missionML <- missionML %>%
-  mutate(across(where(is.numeric),
-                ~ ifelse(is.na(.), mean(., na.rm = TRUE), .)))
-#label Encoding
-missionML$TYPE.OF.ADMSN <- ifelse(missionML$TYPE.OF.ADMSN=="EMERGENCY",1,0)
-missionML$IMPLANT.USED..Y.N. <- ifelse(missionML$IMPLANT.USED..Y.N.=="Y",1,0)
+## 3. Tools and Technologies
 
-#Dummy variables 
-library(fastDummies)
-missionML = dummy_cols(
-  missionML,
-  select_columns = c(
-    "KEY.COMPLAINTS..CODE",
-    "PAST.MEDICAL.HISTORY.CODE",
-    "MODE.OF.ARRIVAL"))
-  
-#correlation
-cr = cor(missionML[sapply(missionML,is.numeric)])
-cr 
-library(corrplot)
-corrplot.mixed(cr)
+* **R:** Statistical computing and data analysis.
+* **RStudio:** Environment for writing and executing R scripts.
+* **Tidyverse:** Data manipulation and preprocessing.
+* **fastDummies:** Dummy-variable creation.
+* **corrplot:** Correlation matrix visualization.
+* **caTools:** Training and testing data splitting.
+* **psych:** Exploratory data analysis and correlation plots.
+* **car:** Multicollinearity assessment using VIF.
 
-#divide the data set into training and testing 
-library(caTools)
-set.seed(11)
-split=sample.split(missionML$TOTAL.COST.TO.HOSPITAL,SplitRatio = 0.7)
-training = subset(missionML,split==TRUE)
-testing = subset(missionML,split==FALSE)
+## 4. Dataset and Variables
 
-library(psych)
+The dataset contains hospital cost information and patient-related variables.
 
-#Heteroscedasticity
-training$TOTAL.COST.TO.HOSPITAL = log(training$TOTAL.COST.TO.HOSPITAL)
-testing$TOTAL.COST.TO.HOSPITAL = log(testing$TOTAL.COST.TO.HOSPITAL)
+Important variables include:
 
-pairs.panels(training[c("LENGTH.OF.STAY...ICU",
-                        "TOTAL.LENGTH.OF.STAY",
-                        "LENGTH.OF.STAY..WARD",
-                        "COST.OF.IMPLANT",
-                        "AGE",
-                        "CREATININE",
-                        "BP..HIGH",
-                        "HR.PULSE",
-                        "BODY.WEIGHT",
-                        "BMI",
-                        "IMPLANT.USED..Y.N.",
-                        "TYPE.OF.ADMSN",
-                        "KEY.COMPLAINTS..CODE",
-                        "PAST.MEDICAL.HISTORY.CODE",
-                        "MODE.OF.ARRIVAL","TOTAL.COST.TO.HOSPITAL")])
+| Variable               | Description                                   |
+| ---------------------- | --------------------------------------------- |
+| Total Cost to Hospital | Target variable for cost prediction           |
+| Total Length of Stay   | Total duration of hospital stay               |
+| ICU Length of Stay     | Duration of stay in the intensive care unit   |
+| Ward Length of Stay    | Duration of stay in the hospital ward         |
+| Cost of Implant        | Cost associated with implants                 |
+| Age                    | Patient age                                   |
+| Creatinine             | Creatinine measurement                        |
+| High Blood Pressure    | Blood pressure-related variable               |
+| Heart Rate/Pulse       | Patient pulse measurement                     |
+| Body Weight            | Patient body weight                           |
+| BMI                    | Body Mass Index                               |
+| Admission Type         | Type of hospital admission                    |
+| Implant Used           | Indicates whether an implant was used         |
+| Key Complaints         | Code representing the patient's key complaint |
+| Past Medical History   | Code representing medical history             |
+| Mode of Arrival        | Mode of arrival at the hospital               |
 
-#Built The Model 
-library(car)
-model1 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-                        TOTAL.LENGTH.OF.STAY,data = training)
-summary(model1)
-vif(model1)
+*Variable definitions should be confirmed using the original dataset documentation.*
 
-model2 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+LENGTH.OF.STAY..WARD
-                        ,data = training)
-summary(model2)
-vif(model2)
-model3 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT
-            ,data = training)
-summary(model3)
-vif(model3)
+## 5. Methodology
 
-model4 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+AGE
-            ,data = training)
-summary(model4)
-vif(model4)
+### Step 1: Data Loading and Exploration
 
-model5 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+AGE+CREATININE
-            ,data = training)
-summary(model5)
-vif(model5)
+The dataset is imported using `read.csv()`. The `summary()` function provides an initial overview of the variables and their distributions.
 
-model6 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+AGE+BP..HIGH
-            ,data = training)
-summary(model6)
-vif(model6)
+### Step 2: Missing-Value Treatment
 
-model7 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+AGE+BP..HIGH+HR.PULSE
-            ,data = training)
-summary(model7)
-vif(model7)
+Missing values in numeric columns are replaced with the corresponding column means.
 
+### Step 3: Categorical Variable Encoding
 
-model8 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+AGE+BP..HIGH+HR.PULSE+BODY.WEIGHT
-            ,data = training)
-summary(model8)
-vif(model8)
+Selected variables, including admission type and implant usage, are converted into binary numeric values.
 
-model9 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+HR.PULSE+BODY.WEIGHT
-            ,data = training)
-summary(model9)
-vif(model9)
+### Step 4: Dummy-Variable Creation
 
-model10 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+HR.PULSE+BODY.WEIGHT+BMI
-            ,data = training)
-summary(model10)
-vif(model10)
+Dummy variables are generated for key complaints, past medical history, and mode of arrival to represent categorical information numerically.
 
-model11 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-               TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+HR.PULSE+BODY.WEIGHT+IMPLANT.USED..Y.N.
-             ,data = training)
-summary(model11)
-vif(model11)
+### Step 5: Correlation Analysis
 
-model12 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+HR.PULSE+BODY.WEIGHT+TYPE.OF.ADMSN
-            ,data = training)
-summary(model12)
-vif(model12)
+A correlation matrix is calculated for numeric variables and visualized using `corrplot`. This helps explore relationships among variables.
 
-model13 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+HR.PULSE+BODY.WEIGHT+KEY.COMPLAINTS..CODE
-            ,data = training)
-summary(model13)
-vif(model13)
+### Step 6: Training and Testing Split
 
-model14 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+HR.PULSE+BODY.WEIGHT+PAST.MEDICAL.HISTORY.CODE
-            ,data = training)
-summary(model14)
-vif(model14)
+The dataset is divided into approximately 70% training data and 30% testing data using `caTools`. A random seed of 11 is used to make the split reproducible.
 
-model15 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+HR.PULSE+BODY.WEIGHT+MODE.OF.ARRIVAL
-            ,data = training)
-summary(model15)
-vif(model15)
+### Step 7: Logarithmic Transformation
 
-model16 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+HR.PULSE+BODY.WEIGHT+AGE
-            ,data = training)
-summary(model16)
-vif(model16)
+The target variable, total hospital cost, is transformed using the natural logarithm. This approach can help address skewness and investigate non-constant variance.
 
-model17 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-               TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+HR.PULSE+BODY.WEIGHT+BP..HIGH
-             ,data = training)
-summary(model17)
-vif(model17)
+### Step 8: Exploratory Data Analysis
 
-model18 = lm(TOTAL.COST.TO.HOSPITAL~TOTAL.LENGTH.OF.STAY+
-             COST.OF.IMPLANT+
-             AGE+
-             CREATININE+
-             BP..HIGH+
-             HR.PULSE+
-             BODY.WEIGHT+
-             BMI+
-             IMPLANT.USED..Y.N.+
-             TYPE.OF.ADMSN+
-             KEY.COMPLAINTS..CODE+
-             PAST.MEDICAL.HISTORY.CODE+
-             MODE.OF.ARRIVAL,data = training)
-summary(model18)
-vif(model17)
+The `pairs.panels()` function is used to examine relationships among selected variables before regression modeling.
 
-model18 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+HR.PULSE+BODY.WEIGHT+CREATININE
-            ,data = training)
-summary(model18)
-vif(model18)
+### Step 9: Multiple Linear Regression
 
-model19 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-               TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+HR.PULSE+BODY.WEIGHT+KEY.COMPLAINTS..CODE
-             ,data = training)
-summary(model19)
-vif(model19)
+Twenty-three numbered model specifications are explored in the supplied script, although one model name is reused. Different combinations of predictors are evaluated using `lm()` and `summary()`.
 
-model20 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-               TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+HR.PULSE+BODY.WEIGHT+KEY.COMPLAINTS..CODE+
-               PAST.MEDICAL.HISTORY.CODE + IMPLANT.USED..Y.N.+AGE,data = training)
-summary(model20)
-vif(model20)
+### Step 10: Multicollinearity Assessment
 
-model21 = lm(TOTAL.COST.TO.HOSPITAL~LENGTH.OF.STAY...ICU+
-              TOTAL.LENGTH.OF.STAY+COST.OF.IMPLANT+HR.PULSE+BODY.WEIGHT+AGE
-            ,data = training)
-summary(model21)
-vif(model21)
+Variance Inflation Factor (VIF) is calculated using the `car` package to assess relationships among regression predictors.
 
-model22 = lm(TOTAL.COST.TO.HOSPITAL ~ LENGTH.OF.STAY...ICU +AGE+
-                   TOTAL.LENGTH.OF.STAY + COST.OF.IMPLANT + HR.PULSE + 
-                   BODY.WEIGHT + PAST.MEDICAL.HISTORY.CODE,
-                 data = training)
-summary(model22)
-vif(model22)
+### Step 11: Prediction and Visualization
 
-model23 = lm(TOTAL.COST.TO.HOSPITAL ~ AGE+LENGTH.OF.STAY..WARD+
-               TOTAL.LENGTH.OF.STAY + COST.OF.IMPLANT + HR.PULSE + 
-               BODY.WEIGHT + PAST.MEDICAL.HISTORY.CODE,
-             data = training)
-summary(model23)
-vif(model23)
+The selected Model 23 specification is used to generate predictions on the testing dataset. The code also produces plots to compare model residuals and predicted versus observed values.
 
+## 6. Regression Results
 
-plot(model23$fitted.values,model23$residuals)
+The PDF report contains the results of multiple regression models.
 
-#test the model on testing data 
-prediction = predict(model23,testing)
-head(prediction)
+### Model 1: Initial Regression Model
 
-testing$prediction = prediction 
-head(testing$TOTAL.COST.TO.HOSPITAL)
+**Predictors:** ICU length of stay and total length of stay.
 
-plot(testing$TOTAL.COST.TO.HOSPITAL,type="l",col="green")
-lines(prediction,type="l",col="blue")
+* R-squared: 62.77%
+* Adjusted R-squared: 62.34%
+* Residual standard error: 0.3196
+* Overall model p-value: Less than 2.2 × 10⁻¹⁶
 
+The initial model explains approximately 62.77% of the variation in the logarithm of hospital cost in the training data.
 
+### Model 4: Adding Implant Cost and Age
 
-  
-  
+* R-squared: 77.02%
+* Adjusted R-squared: 76.48%
+* Residual standard error: 0.2526
 
+Adding implant cost and age increases the explanatory power compared with Model 1.
 
+### Model 13: Adding Key Complaints
 
+* R-squared: 83.47%
+* Adjusted R-squared: 81.66%
+* Residual standard error: 0.223
+* Overall model p-value: Less than 2.2 × 10⁻¹⁶
+
+Model 13 shows a stronger in-sample fit among the reported models highlighted here. However, it contains multiple categorical complaint levels, making it more complex than the initial model.
+
+### Model 23: Selected Prediction Model
+
+The final prediction section of the PDF uses Model 23.
+
+**Predictors:**
+
+* Age
+* Ward length of stay
+* Total length of stay
+* Implant cost
+* Heart rate/pulse
+* Body weight
+* Past medical history
+
+Reported training results:
+
+| Metric                  |        Result |
+| ----------------------- | ------------: |
+| R-squared               |        80.38% |
+| Adjusted R-squared      |        78.77% |
+| Residual standard error |        0.2399 |
+| F-statistic             |          50.1 |
+| Overall model p-value   | < 2.2 × 10⁻¹⁶ |
+
+The model explains approximately 80.38% of the variation in log hospital costs in the training data. The adjusted R-squared is 78.77% after accounting for the number of estimated parameters.
+
+The statistically significant overall F-test indicates that the model, considered as a whole, provides evidence of a relationship between the predictors and the transformed target variable.
+
+**Important:** R-squared is an in-sample explanatory measure. It does not mean the model predicts hospital costs with 80.38% accuracy.
+
+## 7. Interpretation of Model 23
+
+The coefficient estimates help explain how individual predictors relate to log hospital costs while holding the other included variables constant.
+
+| Predictor            | Coefficient |      P-value | Interpretation                                             |
+| -------------------- | ----------: | -----------: | ---------------------------------------------------------- |
+| Age                  |    0.000602 |     0.690625 | Not statistically significant at the 5% level              |
+| Ward length of stay  |    -0.03718 |  4.81 × 10⁻⁷ | Statistically significant negative conditional association |
+| Total length of stay |     0.07422 |  < 2 × 10⁻¹⁶ | Statistically significant positive association             |
+| Implant cost         | 0.000009262 | 2.69 × 10⁻¹³ | Statistically significant positive association             |
+| Heart rate/pulse     |    0.001096 |     0.364595 | Not statistically significant at the 5% level              |
+| Body weight          |    0.002893 |     0.107035 | Not statistically significant at the 5% level              |
+
+The past medical history variable is categorical, so its coefficients compare specific categories against a reference category.
+
+For example, the `Diabetes2` category has a coefficient of approximately 0.3871 and a p-value of 0.000297. The `other` category has a coefficient of approximately -0.2445 and a p-value of 0.031245.
+
+These results indicate conditional associations in the fitted model; they do not establish that a variable causes hospital costs to increase or decrease.
+
+Because the target variable is log-transformed, coefficients should be interpreted on the log scale. Converting a coefficient into a percentage association requires exponentiation, and interpretation depends on the variable's units and the model assumptions.
+
+## 8. Multicollinearity Results
+
+For Model 23, the reported adjusted VIF values for the numerical predictors include:
+
+| Predictor            |  VIF |
+| -------------------- | ---: |
+| Age                  | 4.79 |
+| Ward length of stay  | 2.13 |
+| Total length of stay | 2.43 |
+| Implant cost         | 1.22 |
+| Heart rate/pulse     | 1.79 |
+| Body weight          | 5.22 |
+
+For the categorical past medical history variable, the reported generalized VIF is 2.32 across seven degrees of freedom. Its adjusted value, `GVIF^(1/(2*Df))`, is approximately 1.06.
+
+The results suggest that age and body weight deserve closer inspection for potential multicollinearity. The VIF values alone do not establish whether the regression assumptions are satisfied.
+
+## 9. Testing Data Predictions
+
+The PDF reports the following first six predictions from Model 23:
+
+| Observation | Predicted log cost | Observed log cost |
+| ----------- | -----------------: | ----------------: |
+| 6           |           12.96734 |          12.82761 |
+| 9           |           13.20720 |          12.98890 |
+| 13          |           14.33053 |          13.47529 |
+| 14          |           12.63198 |          12.94811 |
+| 15          |           12.63808 |          13.11427 |
+| 22          |           12.50184 |          12.57404 |
+
+These values are on the logarithmic scale, not the original hospital-cost scale.
+
+The PDF also includes a plot comparing predicted and observed values. However, it does not report a formal testing-set R-squared, Root Mean Squared Error (RMSE), or Mean Absolute Error (MAE).
+
+Consequently, the model's out-of-sample predictive accuracy cannot be fully assessed from the reported values alone.
+
+## 10. Key Findings
+
+* Hospital stay duration and implant cost are important predictors in several reported models.
+* Model 13 has a higher reported training R-squared than Model 23, but it also includes more categorical complaint levels.
+* Model 23 provides a reported training R-squared of 80.38% and adjusted R-squared of 78.77%.
+* In Model 23, total length of stay and implant cost have statistically significant positive coefficients.
+* Ward length of stay has a statistically significant negative coefficient after controlling for the other included predictors.
+* Age, heart rate/pulse, and body weight are not statistically significant at the 5% level in Model 23.
+* The model produces testing-set predictions, but formal testing metrics are needed to assess predictive performance.
+
+## 11. Limitations and Improvements
+
+* Mean imputation may distort variable distributions and relationships.
+* The supplied code does not formally evaluate every regression assumption.
+* The numbered model definitions include a reused `model18` name, which overwrites an earlier model.
+* The code creates dummy variables but generally uses the original categorical columns in the regression formulas.
+* The testing-set prediction results are not summarized using RMSE or MAE.
+* Predictions are on the logarithmic scale and must be transformed appropriately for interpretation in original cost units.
+* Model selection should consider testing performance, model complexity, and statistical assumptions rather than R-squared alone.
+* Healthcare data must be checked for confidentiality before publication.
+
+## 12. Project Files
+
+* **`mission_hospital_analysis.R`** — R script containing the analysis code.
+* **`Package Pricing at Mission Hospital.pdf`** — PDF report containing the R code, analysis, and reported results.
+* **`Package Pricing at Mission Hospital - Data Supplement (2).xlsx`** — Supplementary data file.
+
+The original `missionML.csv` dataset is required to run the supplied code unless the script is adapted to use another verified data source.
+
+## 13. Conclusion
+
+This project demonstrates the use of R for hospital cost analysis through data preprocessing, exploratory analysis, correlation analysis, multiple linear regression, multicollinearity assessment, and prediction.
+
+The reported regression results indicate that length of stay and implant cost are associated with transformed hospital costs. Model 23 explains approximately 80.38% of the variation in log costs in the training data.
+
+Further validation using formal testing metrics and regression diagnostics is necessary before using the model for real-world hospital pricing or financial decisions.
+
+**Note:** The accompanying PDF contains the complete R code, analysis, and reported results.
 
 
 
