@@ -247,7 +247,6 @@ Consequently, the model's out-of-sample predictive accuracy cannot be fully asse
 
 ## 12. Project Files
 
-* **`mission_hospital_analysis.R`** — R script containing the analysis code.
 * **`Package Pricing at Mission Hospital.pdf`** — PDF report containing the R code, analysis, and reported results.
 * **`Package Pricing at Mission Hospital - Data Supplement (2).xlsx`** — Supplementary data file.
 
